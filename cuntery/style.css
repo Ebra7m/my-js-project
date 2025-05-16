@@ -1,0 +1,45 @@
+.container {
+    max-width: 1200px;
+    margin: auto;
+  }
+  
+  .card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .card-img-top {
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  .bi-heart,
+  .bi-heart-fill {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #e63946;
+  }
+  
+  .bi-heart-fill {
+    color: #e63946;
+  }
+
+  

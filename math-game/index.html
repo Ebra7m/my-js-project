@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Game</title>
+  <style>
+    /* General styles for the page */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #6200ea;
+    }
+
+    .game-container {
+      background: #ffffff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+    }
+
+    .question {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .controls input {
+      padding: 10px;
+      font-size: 18px;
+      margin: 10px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .controls button {
+      background-color: #6200ea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .controls button:hover {
+      background-color: #4500b5;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .difficulty {
+      margin-bottom: 20px;
+    }
+
+    .difficulty button {
+      margin: 5px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .difficulty button.active {
+      background-color: #6200ea;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fun Math Game</h1>
+  <div class="game-container">
+    <div class="difficulty">
+      <button data-difficulty="easy" class="active">Easy</button>
+      <button data-difficulty="medium">Medium</button>
+      <button data-difficulty="hard">Hard</button>
+    </div>
+    <div class="question" id="question">Question appears here</div>
+    <div class="controls">
+      <input type="number" id="answer" placeholder="Enter your answer">
+      <button id="submit">Submit Answer</button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    // Get references to elements
+    const questionElement = document.getElementById('question');
+    const answerInput = document.getElementById('answer');
+    const submitButton = document.getElementById('submit');
+    const resultElement = document.getElementById('result');
+    const difficultyButtons = document.querySelectorAll('.difficulty button');
+
+    let num1, num2, operator, correctAnswer, difficulty = 'easy';
+
+    // Function to set the difficulty
+    difficultyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        difficultyButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        difficulty = button.getAttribute('data-difficulty');
+        generateQuestion();
+      });
+    });
+
+    // Function to generate a random math question
+    function generateQuestion() {
+      const operators = ['+', '-', '*', '/'];
+
+      // Set ranges based on difficulty
+      let maxRange;
+      switch (difficulty) {
+        case 'easy':
+          maxRange = 10;
+          break;
+        case 'medium':
+          maxRange = 50;
+          break;
+        case 'hard':
+          maxRange = 100;
+          break;
+      }
+
+      num1 = Math.floor(Math.random() * maxRange) + 1;
+      num2 = Math.floor(Math.random() * maxRange) + 1;
+      operator = operators[Math.floor(Math.random() * operators.length)];
+
+      // Adjust question for division to avoid fractions
+      if (operator === '/') {
+        num1 = num1 * num2;
+      }
+
+      // Calculate correct answer
+      switch (operator) {
+        case '+':
+          correctAnswer = num1 + num2;
+          break;
+        case '-':
+          correctAnswer = num1 - num2;
+          break;
+        case '*':
+          correctAnswer = num1 * num2;
+          break;
+        case '/':
+          correctAnswer = num1 / num2;
+          break;
+      }
+
+      // Display the question
+      questionElement.textContent = `${num1} ${operator} ${num2} = ?`;
+      resultElement.textContent = '';
+      answerInput.value = '';
+    }
+
+    // Function to check the user's answer
+    function checkAnswer() {
+      const userAnswer = parseFloat(answerInput.value);
+      if (isNaN(userAnswer)) {
+        resultElement.textContent = 'Please enter a valid number!';
+        resultElement.style.color = 'red';
+        return;
+      }
+
+      if (Math.abs(userAnswer - correctAnswer) < 0.01) { // Adjust for floating point precision
+        resultElement.textContent = 'Correct! 🎉';
+        resultElement.style.color = 'green';
+      } else {
+        resultElement.textContent = `Wrong! The correct answer was ${correctAnswer}.`;
+        resultElement.style.color = 'red';
+      }
+
+      // Generate a new question after 2 seconds
+      setTimeout(generateQuestion, 2000);
+    }
+
+    // Event listener for the submit button
+    submitButton.addEventListener('click', checkAnswer);
+
+    // Generate the first question on page load
+    generateQuestion();
+  </script>
+</body>
+</html>

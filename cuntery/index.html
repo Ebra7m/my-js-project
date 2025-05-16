@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Countries</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1.5rem 0;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            text-align: center;
+        }
+        #search {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+        }
+        #cards {
+            margin-top: 20px;
+        }
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card-footer {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Explore Countries</h1>
+    </header>
+    <main class="container">
+        <section>
+            <input type="text" id="search" placeholder="Search for a country..." class="form-control">
+        </section>
+        <section id="cards" class="d-flex flex-wrap justify-content-center">
+            <!-- Dynamic cards will be inserted here -->
+        </section>
+    </main>
+    <footer class="text-center mt-5 py-3 border-top">
+        <p>Made with <i class="bi bi-heart-fill text-danger"></i> by [Your Name]</p>
+    </footer>
+
+    <script type="module">
+        async function getCountries() {
+            const response = await fetch("https://restcountries.com/v2/all");
+            return await response.json();
+        }
+
+        function createCardList(countries) {
+            const cardsContainer = document.getElementById("cards");
+            cardsContainer.innerHTML = "";
+
+            countries.forEach(country => {
+                const card = `
+                    <div class="card shadow-lg m-2" style="width: 18rem;">
+                        <img class="card-img-top mt-2" src="${country.flag}" alt="${country.name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${country.name}</h5>
+                            <p class="card-text">Population: ${country.population.toLocaleString()}</p>
+                            <p class="card-text">Region: ${country.region}</p>
+                        </div>
+                        <div class="card-footer text-center">
+                            <i class="bi bi-heart" style="cursor: pointer;"></i>
+                        </div>
+                    </div>`;
+                cardsContainer.innerHTML += card;
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const countries = await getCountries();
+            createCardList(countries);
+
+            const searchInput = document.getElementById("search");
+            searchInput.addEventListener("input", () => {
+                const searchValue = searchInput.value.toLowerCase();
+                const filteredCountries = countries.filter(country =>
+                    country.name.toLowerCase().includes(searchValue)
+                );
+                createCardList(filteredCountries);
+            });
+        });
+    </script>
+</body>
+</html>

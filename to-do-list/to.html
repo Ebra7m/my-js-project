@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do List</title>
+ <link rel="stylesheet" href="to.css">
+   
+</head>
+<body>
+  <div id="container">
+    <div id="menu">
+      <input type="text" id="new-list-text-input" placeholder="Enter list name..." />
+      <input type="button" value="Add List" id="create-new-list-button" />
+    </div>
+    <div id="lists-wrapper"></div>
+  </div>
+
+  <script type="module">
+    class Item {
+      #key; #content; #isCompleted;
+      constructor(key, content, isCompleted = false) {
+        this.#key = key; this.#content = content; this.#isCompleted = isCompleted;
+      }
+      toJSON() {
+        return { key: this.#key, content: this.#content, isCompleted: this.#isCompleted };
+      }
+      static parse(item) {
+        return new Item(item.key, item.content, item.isCompleted);
+      }
+      get key() { return this.#key; }
+      get content() { return this.#content; }
+      get isCompleted() { return this.#isCompleted; }
+      save() {
+        const lists = JSON.parse(localStorage.getItem(this.key[0])) || [];
+        const listIndex = lists.findIndex((list) => list.key[1] === this.key[1]);
+        if (listIndex === -1) throw new ReferenceError("List not found");
+        const thisIndex = lists[listIndex].items.findIndex((i) => i.key[2] === this.key[2]);
+        if (thisIndex === -1) {
+          lists[listIndex].items.push(this);
+        } else {
+          lists[listIndex].items[thisIndex] = this;
+        }
+        localStorage.setItem(this.#key[0], JSON.stringify(lists));
+        return this;
+      }
+      setCompletedStatus(bool) {
+        this.#isCompleted = !!bool; return this;
+      }
+      static toElement(item) {
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("item-wrapper");
+        const li = document.createElement("li");
+        li.textContent = item.content;
+        li.style.textDecoration = item.isCompleted ? "line-through" : "none";
+        wrapper.appendChild(li);
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.isCompleted;
+        checkbox.addEventListener("change", () => {
+          item.setCompletedStatus(checkbox.checked).save();
+          li.style.textDecoration = item.isCompleted ? "line-through" : "none";
+        });
+        wrapper.appendChild(checkbox);
+        return wrapper;
+      }
+    }
+
+    class List {
+      #key; #name; #items;
+      constructor(key, listName, items = []) {
+        this.#key = key; this.#name = listName; this.#items = items;
+      }
+      toJSON() {
+        return { key: this.#key, name: this.#name, items: this.#items };
+      }
+      static parse(list) {
+        const items = list.items.map(i => Item.parse(i));
+        return new List(list.key, list.name, items);
+      }
+      get key() { return this.#key; }
+      get name() { return this.#name; }
+      get items() { return this.#items; }
+      save() {
+        const lists = JSON.parse(localStorage.getItem(this.key[0])) || [];
+        const index = lists.findIndex((l) => l.key[1] === this.key[1]);
+        if (index === -1) lists.push(this);
+        else lists[index] = this;
+        localStorage.setItem(this.#key[0], JSON.stringify(lists));
+        return this;
+      }
+      delete() {
+        const lists = JSON.parse(localStorage.getItem(this.key[0])) || [];
+        const index = lists.findIndex((l) => l.key[1] === this.key[1]);
+        if (index !== -1) {
+          lists.splice(index, 1);
+          localStorage.setItem(this.#key[0], JSON.stringify(lists));
+        }
+      }
+      addItem(item) {
+        if (!this.#items.find(i => i.key[2] === item.key[2])) {
+          this.#items.push(item); this.save();
+        }
+        return this;
+      }
+      static toElement(list) {
+        const wrapper = document.createElement("section");
+        wrapper.classList.add("list-container");
+        const h3 = document.createElement("h3");
+        h3.textContent = list.name;
+        wrapper.appendChild(h3);
+        const inputWrapper = document.createElement("div");
+        const input = document.createElement("input");
+        input.type = "text";
+        const btn = document.createElement("input");
+        btn.type = "button"; btn.value = "Add Item";
+        inputWrapper.appendChild(input); inputWrapper.appendChild(btn);
+        wrapper.appendChild(inputWrapper);
+        const ul = document.createElement("ul");
+        ul.classList.add("items-wrapper");
+        list.items.forEach(i => ul.appendChild(Item.toElement(i)));
+        wrapper.appendChild(ul);
+        const delBtn = document.createElement("input");
+        delBtn.type = "button"; delBtn.value = "Delete List";
+        delBtn.addEventListener("click", () => {
+          if (confirm("Are you sure?")) {
+            list.delete(); wrapper.remove();
+          }
+        });
+        wrapper.appendChild(delBtn);
+        btn.addEventListener("click", () => {
+          if (input.value) {
+            const item = new Item([...list.key, Date.now()], input.value);
+            list.addItem(item).save();
+            ul.appendChild(Item.toElement(item));
+            input.value = "";
+          }
+        });
+        return wrapper;
+      }
+    }
+
+    class ListsManager {
+      constructor(key, containerId, inputId, btnId) {
+        const container = document.querySelector(containerId);
+        const stored = JSON.parse(localStorage.getItem(key)) || [];
+        stored.forEach(l => container.appendChild(List.toElement(List.parse(l))));
+        document.querySelector(btnId).addEventListener("click", () => {
+          const input = document.querySelector(inputId);
+          if (input.value) {
+            const list = new List([key, Date.now()], input.value);
+            list.save();
+            container.appendChild(List.toElement(list));
+            input.value = "";
+          }
+        });
+      }
+    }
+
+    new ListsManager("to-do-lists", "#lists-wrapper", "#new-list-text-input", "#create-new-list-button");
+  </script>
+</body>
+</html>
